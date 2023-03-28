@@ -360,6 +360,7 @@ def experiment():
 
         for query in processed_queries:
             query_vec = term_funcs[term](query, doc_freqs, term_weights)
+            print(query_vec)
             results = search(doc_vectors, query_vec, sim_funcs[sim])
             # results = search_debug(processed_docs, query, rels[query.doc_id], doc_vectors, query_vec, sim_funcs[sim])
             rel = rels[query.doc_id]
