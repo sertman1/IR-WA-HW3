@@ -3,9 +3,13 @@ from typing import NamedTuple, List, Dict
 from collections import Counter, defaultdict
 
 import numpy as np
+from numpy.linalg import norm
 from nltk.stem.snowball import SnowballStemmer
 from nltk.tokenize import word_tokenize
 
+
+
+### File IO and Processing
 
 class Document(NamedTuple):
     doc_id: int # NB data files index starting from 1
@@ -16,6 +20,14 @@ class Document(NamedTuple):
         return (f"doc_id: {self.doc_id}\n" +
             f"  sentence: {self.sentence}\n" +
             f"  label: {self.classification_label}\n")
+
+def get_documents(file):
+    docs = []
+    with open(file, "r", encoding="utf8") as f:
+        tsv_reader = csv.reader(f, delimiter='\t')
+        for line in tsv_reader:
+            docs.append(Document(int(line[0]), word_tokenize(line[2]), int(line[1])))
+    return docs
 
 def read_stopwords(file):
     with open(file) as f:
@@ -47,6 +59,8 @@ def remove_stopwords(docs: List[Document]):
     return [remove_stopwords_doc(doc) for doc in docs]
 
 
+
+### Term-Document Matrix
 
 def compute_doc_freqs(docs: List[Document]):
     '''
@@ -95,14 +109,49 @@ def compute_boolean(doc, doc_freqs, weights):
 
 
 
+### Vector Similarity
 
-def get_documents(file):
-    docs = []
-    with open(file, "r", encoding="utf8") as f:
-        tsv_reader = csv.reader(f, delimiter='\t')
-        for line in tsv_reader:
-            docs.append(Document(int(line[0]), word_tokenize(line[2]), int(line[1])))
-    return docs
+def dictdot(x: Dict[str, float], y: Dict[str, float]):
+    '''
+    Computes the dot product of vectors x and y, represented as sparse dictionaries.
+    '''
+    keys = list(x.keys()) if len(x) < len(y) else list(y.keys())
+    return sum(x.get(key, 0) * y.get(key, 0) for key in keys)
+
+def cosine_sim(x, y):
+    '''
+    Computes the cosine similarity between two sparse term vectors represented as dictionaries.
+    '''
+    num = dictdot(x, y)
+    if num == 0:
+        return 0
+    return num / (norm(list(x.values())) * norm(list(y.values())))
+
+    # Suggestion: the computation of cosine similarity can be made more ecient by precomputing and
+    # storing the sum of the squares of the term weights for each vector, as these are constants across vector
+    # similarity comparisons.
+
+def dice_sim(x, y):
+    num = dictdot(x,y)
+    if num == 0:
+        return 0
+    return (2 * num) / (norm(list(x.values())) * norm(list(y.values())))
+
+def jaccard_sim(x, y):
+    num = dictdot(x,y)
+    if num == 0:
+        return 0
+    return num / ((norm(list(x.values())) * norm(list(y.values()))) - num)
+
+def overlap_sim(x, y):
+    num = dictdot(x,y)
+    if num == 0:
+        return 0
+    return num / min(norm(list(x.values())),  norm(list(y.values())))
+
+
+
+### Search
 
 def experiment():
     plant_docs = get_documents('./raw_data/plant.tsv')
