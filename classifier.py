@@ -70,24 +70,24 @@ def compute_doc_freqs(docs: List[Document]):
     freq = Counter()
     for doc in docs:
         words = set()
-        for word in doc.sentence():
+        for word in doc.sentence:
             words.add(word)
         for word in words:
             freq[word] += 1
     return freq
 
-def compute_tf(doc: Document, doc_freqs: Dict[str, int], weights: list):
+def compute_tf(doc: Document, doc_freqs: Dict[str, int]):
     vec = defaultdict(float)
 
-    for word in doc.sentence():
+    for word in doc.sentence:
         vec[word] += 1
 
     return dict(vec)
 
-def compute_tfidf(doc, doc_freqs, weights):
+def compute_tfidf(doc, doc_freqs):
     N = max(doc_freqs.values())
     freq = doc_freqs
-    tf = compute_tf(doc, doc_freqs, weights)
+    tf = compute_tf(doc, doc_freqs)
     
     vec = defaultdict(float)
 
@@ -97,7 +97,7 @@ def compute_tfidf(doc, doc_freqs, weights):
 
     return dict(vec)
 
-def compute_boolean(doc, doc_freqs, weights):
+def compute_boolean(doc, doc_freqs):
     vec = defaultdict(bool)
 
     for word in doc.sentence:
@@ -182,23 +182,24 @@ def experiment():
         all_docs = get_documents('./raw_data/' + data_set + '.tsv')
         training_docs = get_documents('./training_data/' + data_set + '-train.tsv')
 
-        processed_docs, processed_queries = process_docs(docs, queries, stem, removestop, stopwords)
-        doc_freqs = compute_doc_freqs(processed_docs)
-        doc_vectors = [term_funcs[term](doc, doc_freqs, term_weights) for doc in processed_docs]
+        # processed_docs = process_docs(docs, queries, stem, removestop, stopwords)
+        # TODO IN PART 2
 
+        doc_freqs = compute_doc_freqs(training_docs)
+        doc_vectors = [term_funcs[term](doc, doc_freqs) for doc in training_docs]
+        
+        
 
+        return
     return
 
-def process_docs(docs, stem, removestop, stopwords):
+def process_docs(docs, stem, removestop):
     processed_docs = docs
-    processed_queries = queries
     if removestop:
         processed_docs = remove_stopwords(processed_docs)
-        processed_queries = remove_stopwords(processed_queries)
     if stem:
         processed_docs = stem_docs(processed_docs)
-        processed_queries = stem_docs(processed_queries)
-    return processed_docs, processed_queries
+    return processed_docs
 
 if __name__ == '__main__':
     experiment()
