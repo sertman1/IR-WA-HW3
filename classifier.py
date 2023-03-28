@@ -63,34 +63,44 @@ def remove_stopwords(docs: List[Document]):
 
 
 ### Term-Document Matrix
-def get_dist_decay_values(sentence):
+def get_dist_decay_weights(sentence):
     pos_ambigious = get_index_of_ambigious_word(sentence)
     weightings = []
 
     i = 0
     while i < len(sentence):
         dist = abs(pos_ambigious - i)
-        weightings[i] = 1 / dist
-
-    return weightings
-
-def get_stepped_values(sentence):
-    pos_ambigious = get_index_of_ambigious_word(sentence)
-    weightings = []
-
-    i = 0
-    while i < len(sentence):
-        dist = abs(pos_ambigious - i)
-        if dist == 1: # adjacent
-            weightings[i] = 6
-        elif dist == 2 or dist == 3:
-            weightings[i] = 3
+        if dist == 0: # prevent division by zero
+            weightings.append(0)
         else:
-            weightings = 1 
+            weightings.append(1 / dist)
+
+
+        i += 1
 
     return weightings
 
-def get_ertman_weighting_values(sentence):
+def get_stepped_weights(sentence):
+    pos_ambigious = get_index_of_ambigious_word(sentence)
+    weightings = []
+
+    i = 0
+    while i < len(sentence):
+        dist = abs(pos_ambigious - i)
+        if dist == 0:
+            weightings.append(0)
+        elif dist == 1: # adjacent
+            weightings.append(6)
+        elif dist == 2 or dist == 3:
+            weightings.append(3)
+        else:
+            weightings.append(1)
+        
+        i += 1
+
+    return weightings
+
+def get_ertman_weighting_weights(sentence):
     return 1
 
 def get_index_of_ambigious_word(sentence):
@@ -119,8 +129,20 @@ def compute_doc_freqs(docs: List[Document]):
             freq[word] += 1
     return freq
 
-def compute_tf(doc: Document, doc_freqs: Dict[str, int], weights: list):
+def compute_tf(doc: Document, doc_freqs: Dict[str, int], weights):
     vec = defaultdict(float)
+    computed_weights = []
+
+    if weights.dist_decay == True:
+        computed_weights = get_dist_decay_weights(doc.sentence)
+
+    elif weights.stepped == True:
+        computed_weights = get_stepped_weights(doc.sentence)
+
+    else: # ertman weighting
+        computed_weights = get_ertman_weighting_weights(doc.sentence)
+
+    print(computed_weights)
 
     for word in doc.sentence:
         vec[word] += 1
