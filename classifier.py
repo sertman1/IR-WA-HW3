@@ -63,11 +63,35 @@ def remove_stopwords(docs: List[Document]):
 
 
 ### Term-Document Matrix
-def get_dist_decay_values():
-    return
+def get_dist_decay_values(sentence):
+    pos_ambigious = get_index_of_ambigious_word(sentence)
+    weightings = []
 
-def get_stepped_values():
-    return
+    i = 0
+    while i < len(sentence):
+        dist = abs(pos_ambigious - i)
+        weightings[i] = 1 / dist
+
+    return weightings
+
+def get_stepped_values(sentence):
+    pos_ambigious = get_index_of_ambigious_word(sentence)
+    weightings = []
+
+    i = 0
+    while i < len(sentence):
+        dist = abs(pos_ambigious - i)
+        if dist == 1: # adjacent
+            weightings[i] = 6
+        elif dist == 2 or dist == 3:
+            weightings[i] = 3
+        else:
+            weightings = 1 
+
+    return weightings
+
+def get_ertman_weighting_values(sentence):
+    return 1
 
 def get_index_of_ambigious_word(sentence):
     i = 0
