@@ -65,6 +65,10 @@ def remove_stopwords(docs: List[Document]):
 ### Term-Document Matrix
 def get_dist_decay_weights(sentence):
     pos_ambigious = get_index_of_ambigious_word(sentence)
+
+    if pos_ambigious == -1:
+        return ([1] * len(sentence)) # SMS tagging and thus doesnt weight
+
     weightings = []
 
     i = 0
@@ -82,6 +86,9 @@ def get_dist_decay_weights(sentence):
 
 def get_stepped_weights(sentence):
     pos_ambigious = get_index_of_ambigious_word(sentence)
+    if pos_ambigious == -1:
+        return ([1] * len(sentence))
+
     weightings = []
 
     i = 0
@@ -101,7 +108,7 @@ def get_stepped_weights(sentence):
     return weightings
 
 def get_ertman_weighting_weights(sentence):
-    return 1
+    return
 
 def get_index_of_ambigious_word(sentence):
     i = 0
@@ -109,7 +116,7 @@ def get_index_of_ambigious_word(sentence):
         if len(word) > 3 and word[0] == "." and word [1] == "X" and word[2] == "-":
             return i
         i += 1
-    return
+    return -1
 
 class TermWeights(NamedTuple):
     dist_decay: bool
@@ -142,10 +149,11 @@ def compute_tf(doc: Document, doc_freqs: Dict[str, int], weights):
     else: # ertman weighting
         computed_weights = get_ertman_weighting_weights(doc.sentence)
 
-    print(computed_weights)
-
-    for word in doc.sentence:
-        vec[word] += 1
+    i = 0
+    while i < len(doc.sentence):
+        vec[(doc.sentence)[i]] += computed_weights[i]
+        
+        i += 1
 
     return dict(vec)
 
@@ -247,7 +255,8 @@ def experiment():
         sim_funcs,
         [TermWeights(True, False, False),
          TermWeights(False, True, False),
-         TermWeights(False, False, True)]
+         #TermWeights(False, False, True)
+        ]
     ]
 
     for data_set, term, stem, removestop, sim, term_weights in itertools.product(*permutations):
