@@ -23,7 +23,7 @@ class Document(NamedTuple):
             f"  sentence: {self.sentence}\n" +
             f"  label: {self.classification_label}\n")
 
-def get_tokens(line): # For special adjacent tokens
+def get_LRtokens(line): # For special adjacent tokens
     sentence = word_tokenize(line)
     ambigious_pos = get_index_of_ambigious_word(sentence)
     if ambigious_pos == -1: # SMSspam
@@ -34,15 +34,17 @@ def get_tokens(line): # For special adjacent tokens
         if ambigious_pos + 1 < len(line):
             sentence[ambigious_pos + 1] = "R-" + sentence[ambigious_pos + 1]
 
-    print(sentence)
     return sentence
 
-def get_documents(file):
+def get_documents(file, collocation):
     docs = []
     with open(file, "r", encoding="utf8") as f:
         tsv_reader = csv.reader(f, delimiter='\t')
         for line in tsv_reader:
-            docs.append(Document(int(line[0]), get_tokens(line[2]), int(line[1])))
+            if collocation == 1:
+                docs.append(Document(int(line[0]), word_tokenize(line[2]), int(line[1])))
+            else: # adjacent_seperate_LR
+                docs.append(Document(int(line[0]), get_LRtokens(line[2]), int(line[1])))
     return docs
 
 def read_stopwords(file):
@@ -77,6 +79,7 @@ def remove_stopwords(docs: List[Document]):
 
 
 ### Term-Document Matrix
+
 def get_uniform_weights(sentence):
     weightings = [1] * len(sentence)
     return weightings
@@ -247,10 +250,19 @@ def overlap_sim(x, y):
 ### Search
 
 def experiment():
-    data_sets = ['plant',
-                 'tank', 
-                 'perplace', 
-                 'smsspam',
+    search(False, False, TermWeights(True, False, False, False), 1)
+    search(True, False, TermWeights(False, True, False, False), 1)
+    search(False, False, TermWeights(False, True, False, False), 1)
+    search(False, False, TermWeights(False, True, False, False), 2)
+    search(False, False, TermWeights(False, False, True, False), 1)
+    search(False, False, TermWeights(False, False, False, True), 1)
+
+def search(stem, removestop, term_weights, collocation):
+    data_sets = [
+        'tank',
+        'plant', 
+        'perplace', 
+        'smsspam',
     ]
 
     term_funcs = {
@@ -267,22 +279,15 @@ def experiment():
     }
 
     permutations = [
-        data_sets,
         term_funcs,
-        [False], #True],  # stem
-        [False], #True],  # remove stopwords
         sim_funcs,
-        [TermWeights(True, False, False, False),
-         TermWeights(False, True, False, False),
-         TermWeights(False, False, True, True),
-         TermWeights(False, False, False, True)
-        ]
+        data_sets
     ]
 
-    for data_set, term, stem, removestop, sim, term_weights in itertools.product(*permutations):
+    for term, sim, data_set in itertools.product(*permutations):
         # all_docs = get_documents('./raw_data/' + data_set + '.tsv')
-        training_docs = get_documents('./training_data/' + data_set + '-train.tsv')
-        dev_docs = get_documents('./dev_data/' + data_set + '-dev.tsv')
+        training_docs = get_documents('./training_data/' + data_set + '-train.tsv', collocation)
+        dev_docs = get_documents('./dev_data/' + data_set + '-dev.tsv', collocation)
 
         training_docs = process_docs(training_docs, stem, removestop)
         dev_docs = process_docs(dev_docs, stem, removestop)
