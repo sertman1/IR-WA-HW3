@@ -23,12 +23,26 @@ class Document(NamedTuple):
             f"  sentence: {self.sentence}\n" +
             f"  label: {self.classification_label}\n")
 
+def get_tokens(line): # For special adjacent tokens
+    sentence = word_tokenize(line)
+    ambigious_pos = get_index_of_ambigious_word(sentence)
+    if ambigious_pos == -1: # SMSspam
+        return sentence
+    else:
+        if ambigious_pos > 0:
+            sentence[ambigious_pos - 1] = "L-" + sentence[ambigious_pos - 1]
+        if ambigious_pos + 1 < len(line):
+            sentence[ambigious_pos + 1] = "R-" + sentence[ambigious_pos + 1]
+
+    print(sentence)
+    return sentence
+
 def get_documents(file):
     docs = []
     with open(file, "r", encoding="utf8") as f:
         tsv_reader = csv.reader(f, delimiter='\t')
         for line in tsv_reader:
-            docs.append(Document(int(line[0]), word_tokenize(line[2]), int(line[1])))
+            docs.append(Document(int(line[0]), get_tokens(line[2]), int(line[1])))
     return docs
 
 def read_stopwords(file):
@@ -63,13 +77,17 @@ def remove_stopwords(docs: List[Document]):
 
 
 ### Term-Document Matrix
+def get_uniform_weights(sentence):
+    weightings = [1] * len(sentence)
+    return weightings
+
 def get_dist_decay_weights(sentence):
+    weightings = []
     pos_ambigious = get_index_of_ambigious_word(sentence)
 
-    if pos_ambigious == -1:
-        return ([1] * len(sentence)) # SMS tagging and thus doesnt weight
+    if pos_ambigious == -1: # SMS tagging and thus doesnt weight
+        return get_uniform_weights(sentence)
 
-    weightings = []
 
     i = 0
     while i < len(sentence):
@@ -85,11 +103,11 @@ def get_dist_decay_weights(sentence):
     return weightings
 
 def get_stepped_weights(sentence):
-    pos_ambigious = get_index_of_ambigious_word(sentence)
-    if pos_ambigious == -1:
-        return ([1] * len(sentence))
-
     weightings = []
+    pos_ambigious = get_index_of_ambigious_word(sentence)
+    
+    if pos_ambigious == -1:
+        return get_uniform_weights(sentence)
 
     i = 0
     while i < len(sentence):
@@ -108,7 +126,7 @@ def get_stepped_weights(sentence):
     return weightings
 
 def get_ertman_weighting_weights(sentence):
-    return
+    return get_uniform_weights(sentence) # TODO!!
 
 def get_index_of_ambigious_word(sentence):
     i = 0
@@ -119,6 +137,7 @@ def get_index_of_ambigious_word(sentence):
     return -1
 
 class TermWeights(NamedTuple):
+    uniform: bool
     dist_decay: bool
     stepped: bool
     ertman: bool
@@ -151,7 +170,7 @@ def compute_tf(doc: Document, doc_freqs: Dict[str, int], weights):
 
     i = 0
     while i < len(doc.sentence):
-        vec[(doc.sentence)[i]] += computed_weights[i]
+        vec[(doc.sentence)[i]] += computed_weights[i] # scale TF weight
         
         i += 1
 
@@ -253,9 +272,10 @@ def experiment():
         [False], #True],  # stem
         [False], #True],  # remove stopwords
         sim_funcs,
-        [TermWeights(True, False, False),
-         TermWeights(False, True, False),
-         #TermWeights(False, False, True)
+        [TermWeights(True, False, False, False),
+         TermWeights(False, True, False, False),
+         TermWeights(False, False, True, True),
+         TermWeights(False, False, False, True)
         ]
     ]
 
@@ -323,7 +343,7 @@ def experiment():
                     total_incorrect += 1
             i += 1
 
-        print(total_correct / (total_correct + total_incorrect))
+        print(data_set + ': ' + str(total_correct / (total_correct + total_incorrect)))
 
     return
 
