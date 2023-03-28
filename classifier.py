@@ -155,42 +155,98 @@ def overlap_sim(x, y):
 ### Search
 
 def experiment():
-    data_sets = ['plant', 'tank', 'perplace', 'smsspam'] # comment out specific data sets if desired
+    data_sets = ['plant',
+                 'tank', 
+                 'perplace', 
+                 'smsspam',
+    ]
 
     term_funcs = {
         'tf': compute_tf,
-        'tfidf': compute_tfidf,
-        'boolean': compute_boolean
+        #'tfidf': compute_tfidf,
+        #'boolean': compute_boolean,
     }
 
     sim_funcs = {
         'cosine': cosine_sim,
-        'jaccard': jaccard_sim,
-        'dice': dice_sim,
-        'overlap': overlap_sim
+        #'jaccard': jaccard_sim,
+        #'dice': dice_sim,
+        #'overlap': overlap_sim
     }
 
     permutations = [
         data_sets,
         term_funcs,
-        [False, True],  # stem
-        [False, True],  # remove stopwords
+        [False], #True],  # stem
+        [False], #True],  # remove stopwords
         sim_funcs,
     ]
 
     for data_set, term, stem, removestop, sim in itertools.product(*permutations):
-        all_docs = get_documents('./raw_data/' + data_set + '.tsv')
+        # all_docs = get_documents('./raw_data/' + data_set + '.tsv')
         training_docs = get_documents('./training_data/' + data_set + '-train.tsv')
+        dev_docs = get_documents('./dev_data/' + data_set + '-dev.tsv')
 
-        # processed_docs = process_docs(docs, queries, stem, removestop, stopwords)
-        # TODO IN PART 2
+        training_docs = process_docs(training_docs, stem, removestop)
+        dev_docs = process_docs(dev_docs, stem, removestop)
 
-        doc_freqs = compute_doc_freqs(training_docs)
-        doc_vectors = [term_funcs[term](doc, doc_freqs) for doc in training_docs]
-        
-        
+        training_term_freq = compute_doc_freqs(training_docs)
+        dev_term_freq = compute_doc_freqs(dev_docs)
+        training_vectors = [term_funcs[term](doc, training_term_freq) for doc in training_docs]
+        dev_vectors = [term_funcs[term](doc, dev_term_freq) for doc in dev_docs]
 
-        return
+        # compute centroid 
+        v_profile1 = {}
+        num_occurences1 = {}
+        v_profile2 = {}
+        num_occurences2 = {}
+        i = 0
+        for doc in training_docs:
+            if doc.classification_label == 1:
+                for key in training_vectors[i]:
+                    if key in v_profile1:
+                        v_profile1[key] += training_vectors[i][key]
+                        num_occurences1[key] += 1
+                    else:
+                        v_profile1[key] = training_vectors[i][key]
+                        num_occurences1[key] = 1
+            else:
+                for key in training_vectors[i]:
+                    if key in v_profile2:
+                        v_profile2[key] += training_vectors[i][key]
+                        num_occurences2[key] += 1
+                    else:
+                        v_profile2[key] = training_vectors[i][key]
+                        num_occurences2[key] = 1
+            
+            i += 1
+
+        # normalize centroid
+        for k in v_profile1:
+            v_profile1[k] /= num_occurences1[k]
+        for k in v_profile2:
+            v_profile2[k] /= num_occurences2[k]
+
+        total_correct = 0
+        total_incorrect = 0
+        i = 0
+        for doc in dev_docs:
+            sim1 = sim_funcs[sim](dev_vectors[i], v_profile1) # shift index to start at 0 
+            sim2 = sim_funcs[sim](dev_vectors[i], v_profile2)
+            if sim1 >= sim2: # model determined it is 1
+                if doc.classification_label == 1:
+                    total_correct += 1
+                else:
+                    total_incorrect += 1
+            else: # model determined it is 2
+                if doc.classification_label == 2:
+                    total_correct += 1
+                else:
+                    total_incorrect += 1
+            i += 1
+
+        print(total_correct / (total_correct + total_incorrect))
+
     return
 
 def process_docs(docs, stem, removestop):
