@@ -1,5 +1,4 @@
 import csv
-import re
 import itertools
 from typing import NamedTuple, List, Dict
 from collections import Counter, defaultdict
@@ -285,14 +284,16 @@ def search(stem, removestop, term_weights, collocation):
     ]
 
     for term, sim, data_set in itertools.product(*permutations):
-        # all_docs = get_documents('./raw_data/' + data_set + '.tsv')
         training_docs = get_documents('./training_data/' + data_set + '-train.tsv', collocation)
         dev_docs = get_documents('./dev_data/' + data_set + '-dev.tsv', collocation)
 
         training_docs = process_docs(training_docs, stem, removestop)
         dev_docs = process_docs(dev_docs, stem, removestop)
 
-        training_term_freq = compute_doc_freqs(training_docs)
+        sense1_docs_train, sense2_docs_train = partition_docs(training_docs)
+        sense1_docs_dev, sense2_docs_dev = partition_docs(dev_docs)
+
+        
         dev_term_freq = compute_doc_freqs(dev_docs)
         training_vectors = [term_funcs[term](doc, training_term_freq, term_weights) for doc in training_docs]
         dev_vectors = [term_funcs[term](doc, dev_term_freq, term_weights) for doc in dev_docs]
@@ -359,6 +360,19 @@ def process_docs(docs, stem, removestop):
     if stem:
         processed_docs = stem_docs(processed_docs)
     return processed_docs
+
+# splits the documents into two separate lists of documents wheter they are sense 1 or 2
+def partition_docs(docs):
+    sense1_docs = list()
+    sense2_docs = list()
+
+    for doc in docs:
+        if doc.classification_label == 1:
+            sense1_docs.append(doc)
+        else:
+            sense2_docs.append
+    
+    return sense1_docs, sense2_docs
 
 if __name__ == '__main__':
     experiment()
