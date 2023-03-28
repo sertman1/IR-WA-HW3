@@ -1,4 +1,5 @@
 import csv
+import re
 import itertools
 from typing import NamedTuple, List, Dict
 from collections import Counter, defaultdict
@@ -62,6 +63,24 @@ def remove_stopwords(docs: List[Document]):
 
 
 ### Term-Document Matrix
+def get_dist_decay_values():
+    return
+
+def get_stepped_values():
+    return
+
+def get_index_of_ambigious_word(sentence):
+    i = 0
+    for word in sentence:
+        if len(word) > 3 and word[0] == "." and word [1] == "X" and word[2] == "-":
+            return i
+        i += 1
+    return
+
+class TermWeights(NamedTuple):
+    dist_decay: bool
+    stepped: bool
+    ertman: bool
 
 def compute_doc_freqs(docs: List[Document]):
     '''
@@ -76,7 +95,7 @@ def compute_doc_freqs(docs: List[Document]):
             freq[word] += 1
     return freq
 
-def compute_tf(doc: Document, doc_freqs: Dict[str, int]):
+def compute_tf(doc: Document, doc_freqs: Dict[str, int], weights: list):
     vec = defaultdict(float)
 
     for word in doc.sentence:
@@ -84,10 +103,10 @@ def compute_tf(doc: Document, doc_freqs: Dict[str, int]):
 
     return dict(vec)
 
-def compute_tfidf(doc, doc_freqs):
+def compute_tfidf(doc, doc_freqs, weights):
     N = max(doc_freqs.values())
     freq = doc_freqs
-    tf = compute_tf(doc, doc_freqs)
+    tf = compute_tf(doc, doc_freqs, weights)
     
     vec = defaultdict(float)
 
@@ -97,7 +116,7 @@ def compute_tfidf(doc, doc_freqs):
 
     return dict(vec)
 
-def compute_boolean(doc, doc_freqs):
+def compute_boolean(doc, doc_freqs, weights):
     vec = defaultdict(bool)
 
     for word in doc.sentence:
@@ -180,9 +199,12 @@ def experiment():
         [False], #True],  # stem
         [False], #True],  # remove stopwords
         sim_funcs,
+        [TermWeights(True, False, False),
+         TermWeights(False, True, False),
+         TermWeights(False, False, True)]
     ]
 
-    for data_set, term, stem, removestop, sim in itertools.product(*permutations):
+    for data_set, term, stem, removestop, sim, term_weights in itertools.product(*permutations):
         # all_docs = get_documents('./raw_data/' + data_set + '.tsv')
         training_docs = get_documents('./training_data/' + data_set + '-train.tsv')
         dev_docs = get_documents('./dev_data/' + data_set + '-dev.tsv')
@@ -192,8 +214,8 @@ def experiment():
 
         training_term_freq = compute_doc_freqs(training_docs)
         dev_term_freq = compute_doc_freqs(dev_docs)
-        training_vectors = [term_funcs[term](doc, training_term_freq) for doc in training_docs]
-        dev_vectors = [term_funcs[term](doc, dev_term_freq) for doc in dev_docs]
+        training_vectors = [term_funcs[term](doc, training_term_freq, term_weights) for doc in training_docs]
+        dev_vectors = [term_funcs[term](doc, dev_term_freq, term_weights) for doc in dev_docs]
 
         # compute centroid 
         v_profile1 = {}
@@ -227,6 +249,7 @@ def experiment():
         for k in v_profile2:
             v_profile2[k] /= num_occurences2[k]
 
+        # label dev data and keep track of percent correct
         total_correct = 0
         total_incorrect = 0
         i = 0
