@@ -249,12 +249,26 @@ def overlap_sim(x, y):
 ### Search
 
 def experiment():
+    experiment_num = 1
+    print("-------STARTING EXPERIMENT 1-------")
     search(False, False, TermWeights(True, False, False, False), 1)
+    print("\n-------STARTING EXPERIMENT 2-------")
     search(True, False, TermWeights(False, True, False, False), 1)
+    print("\n-------STARTING EXPERIMENT 3-------")
     search(False, False, TermWeights(False, True, False, False), 1)
+    print("\n-------STARTING EXPERIMENT 4-------")
     search(False, False, TermWeights(False, True, False, False), 2)
+    print("\n-------STARTING EXPERIMENT 5-------")
     search(False, False, TermWeights(False, False, True, False), 1)
+    print("\n-------STARTING EXPERIMENT 6-------")
     search(False, False, TermWeights(False, False, False, True), 1)
+    print("\n-------STARTING EXPERIMENT 7-------")
+    print("\n-------STARTING EXPERIMENT 8-------")
+    print("\n-------STARTING EXPERIMENT 9-------")
+    print("\n-------STARTING EXPERIMENT 10-------")
+    print("\n-------STARTING EXPERIMENT 11-------")
+    print("\n-------STARTING EXPERIMENT 12-------")
+    print("\n-------STARTING EXPERIMENT 13-------")
 
 def search(stem, removestop, term_weights, collocation):
     data_sets = [
@@ -284,45 +298,50 @@ def search(stem, removestop, term_weights, collocation):
     ]
 
     for term, sim, data_set in itertools.product(*permutations):
+        
         training_docs = get_documents('./training_data/' + data_set + '-train.tsv', collocation)
         dev_docs = get_documents('./dev_data/' + data_set + '-dev.tsv', collocation)
 
         training_docs = process_docs(training_docs, stem, removestop)
         dev_docs = process_docs(dev_docs, stem, removestop)
 
-        sense1_docs_train, sense2_docs_train = partition_docs(training_docs)
-        sense1_docs_dev, sense2_docs_dev = partition_docs(dev_docs)
+        sense1_train_docs = get_sense1_docs(training_docs)
+        sense2_train_docs = get_sense2_docs(training_docs)
 
-        
+        # create sense1 and sense2 training vectors
+        sense1_train_term_freq = compute_doc_freqs(sense1_train_docs)
+        sense2_train_term_freq = compute_doc_freqs(sense2_train_docs)
+        sense1_train_vectors = [term_funcs[term](doc, sense1_train_term_freq, term_weights) for doc in sense1_train_docs]
+        sense2_train_vectors = [term_funcs[term](doc, sense2_train_term_freq, term_weights) for doc in sense2_train_docs]
+
+        # create development vectors
         dev_term_freq = compute_doc_freqs(dev_docs)
-        training_vectors = [term_funcs[term](doc, training_term_freq, term_weights) for doc in training_docs]
         dev_vectors = [term_funcs[term](doc, dev_term_freq, term_weights) for doc in dev_docs]
 
         # compute centroid 
         v_profile1 = {}
         num_occurences1 = {}
+        for vec in sense1_train_vectors:
+            for key in vec:
+                if key in v_profile1:
+                    v_profile1[key] += vec[key]
+                    num_occurences1[key] += 1
+                else:
+                    v_profile1[key] = vec[key]
+                    num_occurences1[key] = 1
+        
+
         v_profile2 = {}
         num_occurences2 = {}
-        i = 0
-        for doc in training_docs:
-            if doc.classification_label == 1:
-                for key in training_vectors[i]:
-                    if key in v_profile1:
-                        v_profile1[key] += training_vectors[i][key]
-                        num_occurences1[key] += 1
-                    else:
-                        v_profile1[key] = training_vectors[i][key]
-                        num_occurences1[key] = 1
-            else:
-                for key in training_vectors[i]:
-                    if key in v_profile2:
-                        v_profile2[key] += training_vectors[i][key]
-                        num_occurences2[key] += 1
-                    else:
-                        v_profile2[key] = training_vectors[i][key]
-                        num_occurences2[key] = 1
-            
-            i += 1
+        for vec in sense2_train_vectors:
+            for key in vec:
+                if key in v_profile2:
+                    v_profile2[key] += vec[key]
+                    num_occurences2[key] += 1
+                else:
+                    v_profile2[key] = vec[key]
+                    num_occurences2[key] = 1
+    
 
         # normalize centroid
         for k in v_profile1:
@@ -362,17 +381,18 @@ def process_docs(docs, stem, removestop):
     return processed_docs
 
 # splits the documents into two separate lists of documents wheter they are sense 1 or 2
-def partition_docs(docs):
+def get_sense1_docs(docs):
     sense1_docs = list()
-    sense2_docs = list()
-
     for doc in docs:
         if doc.classification_label == 1:
             sense1_docs.append(doc)
-        else:
-            sense2_docs.append
-    
-    return sense1_docs, sense2_docs
+    return sense1_docs
+def get_sense2_docs(docs):
+    sense2_docs = list()
+    for doc in docs:
+        if doc.classification_label == 2:
+            sense2_docs.append(doc)
+    return sense2_docs
 
 if __name__ == '__main__':
     experiment()
