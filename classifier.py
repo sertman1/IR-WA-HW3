@@ -1,5 +1,8 @@
 import csv
 from typing import NamedTuple, List, Dict
+from collections import Counter, defaultdict
+
+import numpy as np
 from nltk.stem.snowball import SnowballStemmer
 from nltk.tokenize import word_tokenize
 
@@ -42,6 +45,55 @@ def remove_stopwords_doc(doc: Document):
 
 def remove_stopwords(docs: List[Document]):
     return [remove_stopwords_doc(doc) for doc in docs]
+
+
+
+def compute_doc_freqs(docs: List[Document]):
+    '''
+    Computes document frequency, i.e. how many documents contain a specific word
+    '''
+    freq = Counter()
+    for doc in docs:
+        words = set()
+        for word in doc.sentence():
+            words.add(word)
+        for word in words:
+            freq[word] += 1
+    return freq
+
+def compute_tf(doc: Document, doc_freqs: Dict[str, int], weights: list):
+    vec = defaultdict(float)
+
+    for word in doc.sentence():
+        vec[word] += 1
+
+    return dict(vec)
+
+def compute_tfidf(doc, doc_freqs, weights):
+    N = max(doc_freqs.values())
+    freq = doc_freqs
+    tf = compute_tf(doc, doc_freqs, weights)
+    
+    vec = defaultdict(float)
+
+    # the calculation for IDF(t) was derived from Scikit-Learn which effectively handles edge cases
+    for word in doc.sentence:
+        vec[word] += tf[word] * (np.log2((N + 1) / (freq[word] + 1)) + 1)
+
+    return dict(vec)
+
+def compute_boolean(doc, doc_freqs, weights):
+    vec = defaultdict(bool)
+
+    for word in doc.sentence:
+        if doc_freqs[word] > 0:
+            vec[word] == 1
+        else:
+            vec[word] == 0
+
+    return dict(vec)
+
+
 
 
 def get_documents(file):
