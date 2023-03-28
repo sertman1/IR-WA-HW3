@@ -1,4 +1,5 @@
 import csv
+import itertools
 from typing import NamedTuple, List, Dict
 from collections import Counter, defaultdict
 
@@ -154,10 +155,7 @@ def overlap_sim(x, y):
 ### Search
 
 def experiment():
-    plant_docs = get_documents('./raw_data/plant.tsv')
-    tank_docs = get_documents('./raw_data/tank.tsv')  
-    perplace_docs = get_documents('./raw_data/perplace.tsv')   
-    smsspam_docs = get_documents('./raw_data/smsspam.tsv')
+    data_sets = ['plant', 'tank', 'perplace', 'smsspam'] # comment out specific data sets if desired
 
     term_funcs = {
         'tf': compute_tf,
@@ -173,13 +171,34 @@ def experiment():
     }
 
     permutations = [
+        data_sets,
         term_funcs,
         [False, True],  # stem
         [False, True],  # remove stopwords
         sim_funcs,
     ]
 
+    for data_set, term, stem, removestop, sim in itertools.product(*permutations):
+        all_docs = get_documents('./raw_data/' + data_set + '.tsv')
+        training_docs = get_documents('./training_data/' + data_set + '-train.tsv')
+
+        processed_docs, processed_queries = process_docs(docs, queries, stem, removestop, stopwords)
+        doc_freqs = compute_doc_freqs(processed_docs)
+        doc_vectors = [term_funcs[term](doc, doc_freqs, term_weights) for doc in processed_docs]
+
+
     return
+
+def process_docs(docs, stem, removestop, stopwords):
+    processed_docs = docs
+    processed_queries = queries
+    if removestop:
+        processed_docs = remove_stopwords(processed_docs)
+        processed_queries = remove_stopwords(processed_queries)
+    if stem:
+        processed_docs = stem_docs(processed_docs)
+        processed_queries = stem_docs(processed_queries)
+    return processed_docs, processed_queries
 
 if __name__ == '__main__':
     experiment()
