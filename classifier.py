@@ -270,38 +270,38 @@ def overlap_sim(x, y):
 ### Search
 
 def experiment():
-    experiment_num = 1
-    #print("-------STARTING EXPERIMENT 1-------")
-   # search(False, False, TermWeights(True, False, False, False), 1)
-   # print("\n-------STARTING EXPERIMENT 2-------")
-  #  search(True, False, TermWeights(False, True, False, False), 1)
-   # print("\n-------STARTING EXPERIMENT 3-------")
-  #  search(False, False, TermWeights(False, True, False, False), 1)
-  #  print("\n-------STARTING EXPERIMENT 4-------")
-   # search(False, False, TermWeights(False, True, False, False), 2)
-  #  print("\n-------STARTING EXPERIMENT 5-------")
-   # search(False, False, TermWeights(False, False, True, False), 1)
-   # print("\n-------STARTING EXPERIMENT 6-------")
-   # search(False, False, TermWeights(False, False, False, True), 1)
+
+    print("-------STARTING EXPERIMENT 1-------")
+    search(False, False, TermWeights(True, False, False, False), 1, 'cosine')
+    print("\n-------STARTING EXPERIMENT 2-------")
+    search(True, False, TermWeights(False, True, False, False), 1, 'cosine')
+    print("\n-------STARTING EXPERIMENT 3-------")
+    search(False, False, TermWeights(False, True, False, False), 1, 'cosine')
+    print("\n-------STARTING EXPERIMENT 4-------")
+    search(False, False, TermWeights(False, True, False, False), 2, 'cosine')
+    print("\n-------STARTING EXPERIMENT 5-------")
+    search(False, False, TermWeights(False, False, True, False), 1, 'cosine')
+    print("\n-------STARTING EXPERIMENT 6-------")
+    search(False, False, TermWeights(False, False, False, True), 1, 'cosine')
 
     # Best performing model of the 6 permutations above:
     print("\n-------STARTING EXPERIMENT 7-------")
-    search(False, True, TermWeights(True, False, False, False), 1)
+    search(False, True, TermWeights(True, False, False, False), 1, 'overlap')
     print("\n-------STARTING EXPERIMENT 8-------")
-    search(False, True, TermWeights(False, True, False, False), 1)
+    search(False, True, TermWeights(False, True, False, False), 1, 'overlap')
     print("\n-------STARTING EXPERIMENT 9-------")
-    search(False, True, TermWeights(False, True, False, False), 1)
+    search(False, True, TermWeights(False, True, False, False), 1, 'overlap')
     print("\n-------STARTING EXPERIMENT 10-------")
-    search(False, True, TermWeights(False, True, False, False), 2)
+    search(False, True, TermWeights(False, True, False, False), 2, 'overlap')
     print("\n-------STARTING EXPERIMENT 11-------")
-    search(False, True, TermWeights(False, False, True, False), 1)
+    search(False, True, TermWeights(False, False, True, False), 1, 'overlap')
     print("\n-------STARTING EXPERIMENT 12-------")
-    search(False, True, TermWeights(False, False, False, True), 1)
+    search(False, True, TermWeights(False, False, False, True), 1, 'overlap')
 
     # Extened model best performance
     print("\n-------STARTING EXPERIMENT 13-------")
 
-def search(stem, removestop, term_weights, collocation):
+def search(stem, removestop, term_weights, collocation, sim):
     data_sets = [
         'tank',
         'plant', 
@@ -311,24 +311,24 @@ def search(stem, removestop, term_weights, collocation):
 
     term_funcs = {
         'tf': compute_tf,
-        # 'tfidf': compute_tfidf,
-        # 'boolean': compute_boolean,
+        #'tfidf': compute_tfidf,
+        #'boolean': compute_boolean,
     }
 
     sim_funcs = {
-        #'cosine': cosine_sim,
+        'cosine': cosine_sim,
         #'jaccard': jaccard_sim,
         #'dice': dice_sim,
-        'overlap': overlap_sim
+        #'overlap': overlap_sim
     }
 
     permutations = [
         term_funcs,
-        sim_funcs,
         data_sets
     ]
 
-    for term, sim, data_set in itertools.product(*permutations):
+    results = {}
+    for term, data_set in itertools.product(*permutations):
         
         training_docs = get_documents('./training_data/' + data_set + '-train.tsv', collocation)
         dev_docs = get_documents('./dev_data/' + data_set + '-dev.tsv', collocation)
@@ -399,8 +399,9 @@ def search(stem, removestop, term_weights, collocation):
                     total_incorrect += 1
             i += 1
 
-        print(data_set + ': ' + str(total_correct / (total_correct + total_incorrect)))
+        results[data_set] = (total_correct / (total_correct + total_incorrect))
 
+    print(results)
     return
 
 def process_docs(docs, stem, removestop):
