@@ -127,8 +127,27 @@ def get_stepped_weights(sentence):
 
     return weightings
 
+# the 10 words to the left and right of the ambigious word (if applicabale)
+# recieve weightings equivalent to (10 - distance from the ambigious)
 def get_ertman_weighting_weights(sentence):
-    return get_uniform_weights(sentence) # TODO!!
+    weightings = []
+    pos_ambigious = get_index_of_ambigious_word(sentence)
+    
+    if pos_ambigious == -1:
+        return get_uniform_weights(sentence)
+    
+    i = 0
+    while i < len(sentence):
+        dist = abs(pos_ambigious - i)
+
+        if dist <= 10:
+            weightings.append(10 - dist)
+        else:
+            weightings.append(0) # those more than 10 away do not weight to anything
+
+        i += 1
+
+    return weightings
 
 def get_index_of_ambigious_word(sentence):
     i = 0
