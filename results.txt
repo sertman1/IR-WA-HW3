@@ -1,0 +1,36 @@
+-------STARTING EXPERIMENT 1-------
+tank: 0.7325
+plant: 0.89
+perplace: 0.81
+smsspam: 0.3471223021582734
+
+-------STARTING EXPERIMENT 2-------
+tank: 0.475
+plant: 0.8275
+perplace: 0.52
+smsspam: 0.3147482014388489
+
+-------STARTING EXPERIMENT 3-------
+tank: 0.805
+plant: 0.89
+perplace: 0.8475
+smsspam: 0.3471223021582734
+
+-------STARTING EXPERIMENT 4-------
+tank: 0.775
+plant: 0.8475
+perplace: 0.7475
+smsspam: 0.3471223021582734
+
+-------STARTING EXPERIMENT 5-------
+tank: 0.76
+plant: 0.91
+perplace: 0.85
+smsspam: 0.3471223021582734
+
+-------STARTING EXPERIMENT 6-------
+tank: 0.7325
+plant: 0.89
+perplace: 0.81
+smsspam: 0.3471223021582734
+
