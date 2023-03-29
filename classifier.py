@@ -127,9 +127,11 @@ def get_stepped_weights(sentence):
 
     return weightings
 
-# the 10 words to the left and right of the ambigious word (if applicabale)
-# recieve weightings equivalent to (10 - distance from the ambigious)
+# the X words to the left and right of the ambigious word (if applicabale)
+# recieve weightings equivalent to (X - distance from the ambigious)
 def get_ertman_weighting_weights(sentence):
+    X = 9
+    
     weightings = []
     pos_ambigious = get_index_of_ambigious_word(sentence)
     
@@ -140,8 +142,8 @@ def get_ertman_weighting_weights(sentence):
     while i < len(sentence):
         dist = abs(pos_ambigious - i)
 
-        if dist <= 10:
-            weightings.append(10 - dist)
+        if dist <= X:
+            weightings.append(X - dist)
         else:
             weightings.append(0) # those more than 10 away do not weight to anything
 
@@ -269,24 +271,34 @@ def overlap_sim(x, y):
 
 def experiment():
     experiment_num = 1
-    print("-------STARTING EXPERIMENT 1-------")
-    search(False, False, TermWeights(True, False, False, False), 1)
-    print("\n-------STARTING EXPERIMENT 2-------")
-    search(True, False, TermWeights(False, True, False, False), 1)
-    print("\n-------STARTING EXPERIMENT 3-------")
-    search(False, False, TermWeights(False, True, False, False), 1)
-    print("\n-------STARTING EXPERIMENT 4-------")
-    search(False, False, TermWeights(False, True, False, False), 2)
-    print("\n-------STARTING EXPERIMENT 5-------")
-    search(False, False, TermWeights(False, False, True, False), 1)
-    print("\n-------STARTING EXPERIMENT 6-------")
-    search(False, False, TermWeights(False, False, False, True), 1)
+    #print("-------STARTING EXPERIMENT 1-------")
+   # search(False, False, TermWeights(True, False, False, False), 1)
+   # print("\n-------STARTING EXPERIMENT 2-------")
+  #  search(True, False, TermWeights(False, True, False, False), 1)
+   # print("\n-------STARTING EXPERIMENT 3-------")
+  #  search(False, False, TermWeights(False, True, False, False), 1)
+  #  print("\n-------STARTING EXPERIMENT 4-------")
+   # search(False, False, TermWeights(False, True, False, False), 2)
+  #  print("\n-------STARTING EXPERIMENT 5-------")
+   # search(False, False, TermWeights(False, False, True, False), 1)
+   # print("\n-------STARTING EXPERIMENT 6-------")
+   # search(False, False, TermWeights(False, False, False, True), 1)
+
+    # Best performing model of the 6 permutations above:
     print("\n-------STARTING EXPERIMENT 7-------")
+    search(False, True, TermWeights(True, False, False, False), 1)
     print("\n-------STARTING EXPERIMENT 8-------")
+    search(False, True, TermWeights(False, True, False, False), 1)
     print("\n-------STARTING EXPERIMENT 9-------")
+    search(False, True, TermWeights(False, True, False, False), 1)
     print("\n-------STARTING EXPERIMENT 10-------")
+    search(False, True, TermWeights(False, True, False, False), 2)
     print("\n-------STARTING EXPERIMENT 11-------")
+    search(False, True, TermWeights(False, False, True, False), 1)
     print("\n-------STARTING EXPERIMENT 12-------")
+    search(False, True, TermWeights(False, False, False, True), 1)
+
+    # Extened model best performance
     print("\n-------STARTING EXPERIMENT 13-------")
 
 def search(stem, removestop, term_weights, collocation):
@@ -299,15 +311,15 @@ def search(stem, removestop, term_weights, collocation):
 
     term_funcs = {
         'tf': compute_tf,
-        #'tfidf': compute_tfidf,
-        #'boolean': compute_boolean,
+        # 'tfidf': compute_tfidf,
+        # 'boolean': compute_boolean,
     }
 
     sim_funcs = {
-        'cosine': cosine_sim,
+        #'cosine': cosine_sim,
         #'jaccard': jaccard_sim,
         #'dice': dice_sim,
-        #'overlap': overlap_sim
+        'overlap': overlap_sim
     }
 
     permutations = [

@@ -22,15 +22,66 @@ plant: 0.8475
 perplace: 0.7475
 smsspam: 0.3471223021582734
 
--------STARTING EXPERIMENT 5-------
+-------STARTING EXPERIMENT 5 (#1-bag-of-words approach)-------
 tank: 0.76
 plant: 0.91
 perplace: 0.85
 smsspam: 0.3471223021582734
 
--------STARTING EXPERIMENT 6-------
-tank: 0.7325
-plant: 0.89
-perplace: 0.81
+-------STARTING EXPERIMENT 6 (#1-bag-of-words approach)-------
+tank: 0.75
+plant: 0.88
+perplace: 0.815
 smsspam: 0.3471223021582734
 
+-------STARTING EXPERIMENT 7-------
+tank: 0.89
+plant: 0.9
+perplace: 0.7425
+smsspam: 0.9406474820143885
+
+-------STARTING EXPERIMENT 8-------
+tank: 0.91
+plant: 0.91
+perplace: 0.7725
+smsspam: 0.9406474820143885
+
+-------STARTING EXPERIMENT 9-------
+tank: 0.91
+plant: 0.91
+perplace: 0.7725
+smsspam: 0.9406474820143885
+
+-------STARTING EXPERIMENT 10-------
+tank: 0.9375
+plant: 0.92
+perplace: 0.7125
+smsspam: 0.9406474820143885
+
+-------STARTING EXPERIMENT 11 (#1-bag-of-words approach)-------
+tank: 0.9025
+plant: 0.9075
+perplace: 0.77
+smsspam: 0.9406474820143885
+
+-------STARTING EXPERIMENT 12 (#1-bag-of-words approach)-------
+tank: 0.89
+plant: 0.9
+perplace: 0.7425
+smsspam: 0.9406474820143885
+
+Notes:
+  - tf_dif helped ssms noticably (and increase of 5.2% more correct) but did worse in all other categories
+  - boolean worst by far
+  - jaccard, dice and cosine all equivalent: overlap BEST BY FAR
+
+-------STARTING EXPERIMENT 8-------
+  - not stemming saw a significant increase in performance across the board (especially in perplace and tank, however)
+  - tf_dif helped ssms noticably (and increase of 7% more correct) but did worse in all other categories
+  - boolean worst by far
+  - jaccard, dice and cosine all equivalent: overlap BEST BY FAR
+
+  
+
+2. STEMMING == BAD
+    removing stopwords == GOOD
