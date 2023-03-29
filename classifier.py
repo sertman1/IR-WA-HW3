@@ -269,9 +269,7 @@ def overlap_sim(x, y):
 
 ### Search
 
-def experiment():
-
-    print("-------STARTING EXPERIMENT 1-------")
+#    print("-------STARTING EXPERIMENT 1-------")
     search(False, False, TermWeights(True, False, False, False), 1, 'cosine')
     print("\n-------STARTING EXPERIMENT 2-------")
     search(True, False, TermWeights(False, True, False, False), 1, 'cosine')
@@ -284,19 +282,21 @@ def experiment():
     print("\n-------STARTING EXPERIMENT 6-------")
     search(False, False, TermWeights(False, False, False, True), 1, 'cosine')
 
+def experiment():
+
     # Best performing model of the 6 permutations above:
     print("\n-------STARTING EXPERIMENT 7-------")
-    search(False, True, TermWeights(True, False, False, False), 1, 'overlap')
+    search(False, False, TermWeights(True, False, False, False), 1, 'overlap')
     print("\n-------STARTING EXPERIMENT 8-------")
-    search(False, True, TermWeights(False, True, False, False), 1, 'overlap')
+    search(False, False, TermWeights(False, True, False, False), 1, 'overlap')
     print("\n-------STARTING EXPERIMENT 9-------")
-    search(False, True, TermWeights(False, True, False, False), 1, 'overlap')
+    search(False, False, TermWeights(False, True, False, False), 1, 'overlap')
     print("\n-------STARTING EXPERIMENT 10-------")
-    search(False, True, TermWeights(False, True, False, False), 2, 'overlap')
+    search(False, False, TermWeights(False, True, False, False), 2, 'overlap')
     print("\n-------STARTING EXPERIMENT 11-------")
-    search(False, True, TermWeights(False, False, True, False), 1, 'overlap')
+    search(False, False, TermWeights(False, False, True, False), 1, 'overlap')
     print("\n-------STARTING EXPERIMENT 12-------")
-    search(False, True, TermWeights(False, False, False, True), 1, 'overlap')
+    search(False, False, TermWeights(False, False, False, True), 1, 'overlap')
 
     # Extened model best performance
     print("\n-------STARTING EXPERIMENT 13-------")
@@ -319,7 +319,7 @@ def search(stem, removestop, term_weights, collocation, sim):
         'cosine': cosine_sim,
         #'jaccard': jaccard_sim,
         #'dice': dice_sim,
-        #'overlap': overlap_sim
+        'overlap': overlap_sim
     }
 
     permutations = [
