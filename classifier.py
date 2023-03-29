@@ -269,7 +269,8 @@ def overlap_sim(x, y):
 
 ### Search
 
-#    print("-------STARTING EXPERIMENT 1-------")
+def experiment():
+    print("-------STARTING EXPERIMENT 1-------")
     search(False, False, TermWeights(True, False, False, False), 1, 'cosine')
     print("\n-------STARTING EXPERIMENT 2-------")
     search(True, False, TermWeights(False, True, False, False), 1, 'cosine')
@@ -282,13 +283,11 @@ def overlap_sim(x, y):
     print("\n-------STARTING EXPERIMENT 6-------")
     search(False, False, TermWeights(False, False, False, True), 1, 'cosine')
 
-def experiment():
-
     # Best performing model of the 6 permutations above:
     print("\n-------STARTING EXPERIMENT 7-------")
     search(False, False, TermWeights(True, False, False, False), 1, 'overlap')
     print("\n-------STARTING EXPERIMENT 8-------")
-    search(False, False, TermWeights(False, True, False, False), 1, 'overlap')
+    search(True, False, TermWeights(False, True, False, False), 1, 'overlap')
     print("\n-------STARTING EXPERIMENT 9-------")
     search(False, False, TermWeights(False, True, False, False), 1, 'overlap')
     print("\n-------STARTING EXPERIMENT 10-------")
