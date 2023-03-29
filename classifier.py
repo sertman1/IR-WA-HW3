@@ -129,7 +129,6 @@ def get_stepped_weights(sentence):
 
 # see results.pdf question 2
 def get_ertman_weighting_weights(sentence):
-    
     weightings = []
     pos_ambigious = get_index_of_ambigious_word(sentence)
     
