@@ -349,62 +349,55 @@ def search(stem, removestop, term_weights, collocation, sim):
         train_term_freq = compute_doc_freqs(training_docs)
         train_vectors = [term_funcs[term](doc, train_term_freq, term_weights) for doc in training_docs]
 
-
         # create development vectors
         dev_term_freq = compute_doc_freqs(dev_docs)
         dev_vectors = [term_funcs[term](doc, dev_term_freq, term_weights) for doc in dev_docs]
 
-        # compute centroid 
-        v_profile1 = {}
-        num_occurences1 = {}
-        for vec in sense1_train_vectors:
-            for key in vec:
-                if key in v_profile1:
-                    v_profile1[key] += vec[key]
-                    num_occurences1[key] += 1
-                else:
-                    v_profile1[key] = vec[key]
-                    num_occurences1[key] = 1
-        
-
-        v_profile2 = {}
-        num_occurences2 = {}
-        for vec in sense2_train_vectors:
-            for key in vec:
-                if key in v_profile2:
-                    v_profile2[key] += vec[key]
-                    num_occurences2[key] += 1
-                else:
-                    v_profile2[key] = vec[key]
-                    num_occurences2[key] = 1
-    
-
-        # normalize centroid
-        for k in v_profile1:
-            v_profile1[k] /= num_occurences1[k]
-        for k in v_profile2:
-            v_profile2[k] /= num_occurences2[k]
-
-        # label dev data and keep track of percent correct
         total_correct = 0
         total_incorrect = 0
         i = 0
-        for doc in dev_docs:
-            sim1 = sim_funcs[sim](dev_vectors[i], v_profile1) # shift index to start at 0 
-            sim2 = sim_funcs[sim](dev_vectors[i], v_profile2)
-            if sim1 >= sim2: # model determined it is 1
-                if doc.classification_label == 1:
+        k = 7
+        for d_doc in dev_docs:
+            sim_values = list()
+            d_vec = dev_vectors[i]
+            j = 0
+            for t_doc in training_docs:
+                
+                similarity = sim_funcs[sim](d_vec, train_vectors[j])
+                sense = t_doc.classification_label
+                sim_values.append((similarity, sense))
+
+                j += 1
+
+            sim_values = sorted(sim_values)
+
+            num_sense1 = 0
+            num_sense2 = 0
+            index = len(sim_values) - 1
+            while len(sim_values) - index <= k:
+                if (sim_values[index])[1] == 1:
+                    num_sense1 += 1
+                else:
+                    num_sense2 += 1
+                
+                index -= 1
+
+            if num_sense1 > num_sense2: # model predicts 1
+                if d_doc.classification_label == 1:
                     total_correct += 1
                 else:
                     total_incorrect += 1
-            else: # model determined it is 2
-                if doc.classification_label == 2:
+                  
+            else: # model predicts 2
+                if d_doc.classification_label == 2:
                     total_correct += 1
                 else:
-                    total_incorrect += 1
+                    total_incorrect
+
             i += 1
 
         results[data_set] = (total_correct / (total_correct + total_incorrect))
+
 
     print(results)
     return

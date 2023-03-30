@@ -25,6 +25,8 @@ to this classifier was as follows:
     - I ranked these similarity values descending from most similar.
 
     - I then extracted the k most similar vectors (an odd amount to prevent ties).
+        - I decided on k = 7 from testing of different values
 
     - If the majority of the similar vectors were sense1, then the classifier
       predicts and vice versa.
+
