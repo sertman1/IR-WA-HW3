@@ -1,4 +1,4 @@
--------STARTING EXPERIMENT 1-------
+-------PERMUTATION 1-------
 tank: 0.7325
 plant: 0.89
 perplace: 0.81
