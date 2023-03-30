@@ -1,0 +1,30 @@
+In Part 3, I implemented a Naive Bayes classifier as per the NOTES. Ultimately,
+I found that the classifier performed worse than the original in Parts 1 and 2:
+  tank: 0.6300253331864742 
+  plant: 0.5340559041642898
+  perplace: 0.522642151855635
+  smsspam: 0.7724668521853004
+
+While tweaking parameters, I found that different weighting schemes had no 
+impact on results. Stemming saw an increase in results and so did using 
+collocation method 2, the adjacent-separate-LR, as opposed to bag-of-words.
+
+The predicted_class, true_class and LogLikelihood value for each test vector
+used in this model are in file 'bayesian_results.tsv'.
+
+
+In Part 3, I also implemented a k nearest neighbor classifier. My approach
+to this classifier was as follows:
+  - Rather than distinguishing between sense1 and sense2 vectors, I treated
+    them equally.
+    
+  - Then, during the testing stage, for each test vector: 
+  
+    - I calculated a similarity value for every training vector (sense1 and sense2).
+
+    - I ranked these similarity values descending from most similar.
+
+    - I then extracted the k most similar vectors (an odd amount to prevent ties).
+
+    - If the majority of the similar vectors were sense1, then the classifier
+      predicts and vice versa.
