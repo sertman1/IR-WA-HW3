@@ -293,23 +293,6 @@ def experiment():
     print("\n-------STARTING EXPERIMENT 6-------")
     search(False, False, TermWeights(False, False, False, True), 1, 'cosine')
 
-    # Best performing model of the 6 permutations above:
-    print("\n-------STARTING EXPERIMENT 7-------")
-    search(False, False, TermWeights(True, False, False, False), 1, 'overlap')
-    print("\n-------STARTING EXPERIMENT 8-------")
-    search(True, False, TermWeights(False, True, False, False), 1, 'overlap')
-    print("\n-------STARTING EXPERIMENT 9-------")
-    search(False, False, TermWeights(False, True, False, False), 1, 'overlap')
-    print("\n-------STARTING EXPERIMENT 10-------")
-    search(False, False, TermWeights(False, True, False, False), 2, 'overlap')
-    print("\n-------STARTING EXPERIMENT 11-------")
-    search(False, False, TermWeights(False, False, True, False), 1, 'overlap')
-    print("\n-------STARTING EXPERIMENT 12-------")
-    search(False, False, TermWeights(False, False, False, True), 1, 'overlap')
-
-    # Extened model best performance
-    print("\n-------STARTING EXPERIMENT 13-------")
-
 def search(stem, removestop, term_weights, collocation, sim):
     data_sets = [
         'tank',
@@ -356,7 +339,7 @@ def search(stem, removestop, term_weights, collocation, sim):
         total_correct = 0
         total_incorrect = 0
         i = 0
-        k = 7
+        k = 11
         for d_doc in dev_docs:
             sim_values = list()
             d_vec = dev_vectors[i]

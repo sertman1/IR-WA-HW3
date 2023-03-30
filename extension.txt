@@ -25,8 +25,36 @@ to this classifier was as follows:
     - I ranked these similarity values descending from most similar.
 
     - I then extracted the k most similar vectors (an odd amount to prevent ties).
-        - I decided on k = 7 from testing of different values
+        - I decided on k = 11 from testing of different values
 
     - If the majority of the similar vectors were sense1, then the classifier
       predicts and vice versa.
 
+The results of this model on permutations 1-6 are as follows:
+
+-------STARTING EXPERIMENT 1-------
+{'tank': 0.9285714285714286, 'plant': 0.8421052631578947, 'perplace': 0.8670360110803325, 'smsspam': 0.996219281663516}
+
+-------STARTING EXPERIMENT 2-------
+{'tank': 0.9121212121212121, 'plant': 0.8675324675324675, 'perplace': 0.8539325842696629, 'smsspam': 0.992619926199262}
+
+-------STARTING EXPERIMENT 3-------
+{'tank': 0.8904494382022472, 'plant': 0.9382352941176471, 'perplace': 0.9554317548746518, 'smsspam': 0.996219281663516}
+
+-------STARTING EXPERIMENT 4-------
+{'tank': 0.9519774011299436, 'plant': 0.8876712328767123, 'perplace': 0.9559228650137741, 'smsspam': 0.996219281663516}
+
+-------STARTING EXPERIMENT 5-------
+{'tank': 0.8898550724637682, 'plant': 0.9373134328358209, 'perplace': 0.9530386740331491, 'smsspam': 0.996219281663516}
+
+-------STARTING EXPERIMENT 6-------
+{'tank': 0.9195046439628483, 'plant': 0.8971428571428571, 'perplace': 0.9634831460674157, 'smsspam': 0.996219281663516}
+
+
+These results truly stood out; compared to the original model, the k-nearest-neighbor model performed better
+in every single case. What's more, it performed better in substantail ways. One remarkable improvement was 
+in the smsspam task; in the original model, a result of 31-34% was being obtained, but in this one, 
+results were in the 99%. From this, I infer that a k-nearest-neighbor model is highly effective for non-targeted 
+tasks. But, even the targeted tasks saw improvement. Some notable examples of this was in the tank and perplace 
+category for permutation 2: 0.475 --> 0.9121212121212121 and 0.52 --> 0.8539325842696629 respectively.
+These results convince me that k-nearest-neighbor is a handsdown superior model to the original one.
