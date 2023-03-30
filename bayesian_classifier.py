@@ -112,17 +112,15 @@ def compute_doc_freqs(docs: List[Document]):
 
 def compute_tf(doc: Document, doc_freqs: Dict[str, int], weights):
     vec = defaultdict(float)
+    computed_weights = []
+
     computed_weights = get_uniform_weights(doc.sentence)
 
     i = 0
     while i < len(doc.sentence):
-        term = doc.sentence[i]
-
-        if len(term) > 3 and term[0] == "." and term [1] == "X" and term[2] == "-":
-            i += 1
-        else:
-            vec[term] += computed_weights[i] 
-            i += 1
+        vec[(doc.sentence)[i]] += computed_weights[i] # scale TF weight
+        
+        i += 1
 
     return dict(vec)
 
@@ -197,10 +195,10 @@ def overlap_sim(x, y):
 ### Search
 
 def experiment():
-    search(False, True, TermWeights(True, False, False, False), 1, 'cosine')
+    search(True, True, TermWeights(True, False, False, False), 2)
     return
 
-def search(stem, removestop, term_weights, collocation, sim):
+def search(stem, removestop, term_weights, collocation):
     data_sets = [
         'tank',
         'plant', 
@@ -212,19 +210,13 @@ def search(stem, removestop, term_weights, collocation, sim):
         'tf': compute_tf,
     }
 
-    sim_funcs = {
-        'cosine': cosine_sim,
-        #'jaccard': jaccard_sim,
-        #'dice': dice_sim,
-        #'overlap': overlap_sim
-    }
-
     permutations = [
         term_funcs,
         data_sets
     ]
 
-    results = {}
+    terminal_results = {}
+    file_results = ""
     for term, data_set in itertools.product(*permutations):
         
         training_docs = get_documents('./training_data/' + data_set + '-train.tsv', collocation)
@@ -278,6 +270,8 @@ def search(stem, removestop, term_weights, collocation, sim):
 
         i = 0
         sumofLL = 0
+        total_correct = 0
+        total_incorrect = 0
         for doc in dev_docs:
             vec = dev_vectors[i]
             for term in vec:
@@ -291,15 +285,31 @@ def search(stem, removestop, term_weights, collocation, sim):
                 else: # both classes equally likely
                     predicted_class = 0
 
-            print("Vec #" + str(doc.doc_id + 1) + 
-                  "\tTrue Class: " + str(doc.classification_label) + 
-                  "\tPredicted Class: " + str(predicted_class) + 
-                  "\tSum of LL: " + str(sumofLL))
+                if doc.classification_label == 1 and predicted_class == 1:
+                    total_correct += 1
+                elif doc.classification_label == 2 and predicted_class == 2:
+                    total_correct += 1
+                else:
+                    total_incorrect += 1
+
+            #print("Vec #" + str(doc.doc_id + 1) + 
+            #      "\tTrue Class: " + str(doc.classification_label) + 
+            #      "\tPredicted Class: " + str(predicted_class) + 
+            #      "\tSum of LL: " + str(sumofLL))
 
             i += 1
+            terminal_results[data_set] = (total_correct / (total_correct + total_incorrect))
+    
+            file_results += ("Vec #" + str(doc.doc_id + 1) + 
+                  ",\tTrue Class: " + str(doc.classification_label) + 
+                  ",\tPredicted Class: " + str(predicted_class) + 
+                  ",\tSum of LL: " + str(sumofLL) + "\n")
+    
+    with open('bayesian_results.tsv', 'w') as f:
+        f.write(file_results)
+    f.close()
+    print(terminal_results)
 
-
-    print(results)
     return
 
 def process_docs(docs, stem, removestop):
