@@ -83,81 +83,6 @@ def get_uniform_weights(sentence):
     weightings = [1] * len(sentence)
     return weightings
 
-def get_dist_decay_weights(sentence):
-    weightings = []
-    pos_ambigious = get_index_of_ambigious_word(sentence)
-
-    if pos_ambigious == -1: # SMS tagging and thus doesnt weight
-        return get_uniform_weights(sentence)
-
-
-    i = 0
-    while i < len(sentence):
-        dist = abs(pos_ambigious - i)
-        if dist == 0: # prevent division by zero
-            weightings.append(0)
-        else:
-            weightings.append(1 / dist)
-
-
-        i += 1
-
-    return weightings
-
-def get_stepped_weights(sentence):
-    weightings = []
-    pos_ambigious = get_index_of_ambigious_word(sentence)
-    
-    if pos_ambigious == -1:
-        return get_uniform_weights(sentence)
-
-    i = 0
-    while i < len(sentence):
-        dist = abs(pos_ambigious - i)
-        if dist == 0:
-            weightings.append(0)
-        elif dist == 1: # adjacent
-            weightings.append(6)
-        elif dist == 2 or dist == 3:
-            weightings.append(3)
-        else:
-            weightings.append(1)
-        
-        i += 1
-
-    return weightings
-
-# see results.pdf question 2
-def get_ertman_weighting_weights(sentence):
-    weightings = []
-    pos_ambigious = get_index_of_ambigious_word(sentence)
-    
-    if pos_ambigious == -1:
-        return get_uniform_weights(sentence)
-    
-    i = 0
-    while i < len(sentence):
-        dist = abs(pos_ambigious - i)
-
-        if dist == 0:
-            weightings.append(0)
-        elif dist == 1: # adjacent
-            weightings.append(11)
-        elif dist == 2:
-            weightings.append(10)
-        elif dist == 3:
-            weightings.append(8)
-        elif dist == 4:
-            weightings.append(5)
-        elif dist == 5:
-            weightings.append(1)
-        else:
-            weightings.append(1)
-
-        i += 1
-
-    return weightings
-
 def get_index_of_ambigious_word(sentence):
     i = 0
     for word in sentence:
@@ -187,25 +112,17 @@ def compute_doc_freqs(docs: List[Document]):
 
 def compute_tf(doc: Document, doc_freqs: Dict[str, int], weights):
     vec = defaultdict(float)
-    computed_weights = []
-
-    if weights.uniform == True:
-        computed_weights = get_uniform_weights(doc.sentence)
-        
-    elif weights.dist_decay == True:
-        computed_weights = get_dist_decay_weights(doc.sentence)
-
-    elif weights.stepped == True:
-        computed_weights = get_stepped_weights(doc.sentence)
-
-    else: # ertman weighting
-        computed_weights = get_ertman_weighting_weights(doc.sentence)
+    computed_weights = get_uniform_weights(doc.sentence)
 
     i = 0
     while i < len(doc.sentence):
-        vec[(doc.sentence)[i]] += computed_weights[i] # scale TF weight
-        
-        i += 1
+        term = doc.sentence[i]
+
+        if len(term) > 3 and term[0] == "." and term [1] == "X" and term[2] == "-":
+            i += 1
+        else:
+            vec[term] += computed_weights[i] 
+            i += 1
 
     return dict(vec)
 
@@ -280,35 +197,8 @@ def overlap_sim(x, y):
 ### Search
 
 def experiment():
-    print("-------STARTING EXPERIMENT 1-------")
-    search(False, False, TermWeights(True, False, False, False), 1, 'cosine')
-    print("\n-------STARTING EXPERIMENT 2-------")
-    search(True, False, TermWeights(False, True, False, False), 1, 'cosine')
-    print("\n-------STARTING EXPERIMENT 3-------")
-    search(False, False, TermWeights(False, True, False, False), 1, 'cosine')
-    print("\n-------STARTING EXPERIMENT 4-------")
-    search(False, False, TermWeights(False, True, False, False), 2, 'cosine')
-    print("\n-------STARTING EXPERIMENT 5-------")
-    search(False, False, TermWeights(False, False, True, False), 1, 'cosine')
-    print("\n-------STARTING EXPERIMENT 6-------")
-    search(False, False, TermWeights(False, False, False, True), 1, 'cosine')
-
-    # Best performing model of the 6 permutations above:
-    print("\n-------STARTING EXPERIMENT 7-------")
-    search(False, False, TermWeights(True, False, False, False), 1, 'overlap')
-    print("\n-------STARTING EXPERIMENT 8-------")
-    search(True, False, TermWeights(False, True, False, False), 1, 'overlap')
-    print("\n-------STARTING EXPERIMENT 9-------")
-    search(False, False, TermWeights(False, True, False, False), 1, 'overlap')
-    print("\n-------STARTING EXPERIMENT 10-------")
-    search(False, False, TermWeights(False, True, False, False), 2, 'overlap')
-    print("\n-------STARTING EXPERIMENT 11-------")
-    search(False, False, TermWeights(False, False, True, False), 1, 'overlap')
-    print("\n-------STARTING EXPERIMENT 12-------")
-    search(False, False, TermWeights(False, False, False, True), 1, 'overlap')
-
-    # Extened model best performance
-    print("\n-------STARTING EXPERIMENT 13-------")
+    search(False, True, TermWeights(True, False, False, False), 1, 'cosine')
+    return
 
 def search(stem, removestop, term_weights, collocation, sim):
     data_sets = [
@@ -320,15 +210,13 @@ def search(stem, removestop, term_weights, collocation, sim):
 
     term_funcs = {
         'tf': compute_tf,
-        #'tfidf': compute_tfidf,
-        #'boolean': compute_boolean,
     }
 
     sim_funcs = {
         'cosine': cosine_sim,
         #'jaccard': jaccard_sim,
         #'dice': dice_sim,
-        'overlap': overlap_sim
+        #'overlap': overlap_sim
     }
 
     permutations = [
@@ -358,57 +246,58 @@ def search(stem, removestop, term_weights, collocation, sim):
         dev_term_freq = compute_doc_freqs(dev_docs)
         dev_vectors = [term_funcs[term](doc, dev_term_freq, term_weights) for doc in dev_docs]
 
-        # compute centroid 
-        v_profile1 = {}
-        num_occurences1 = {}
+
+        V_sum1 = {}
         for vec in sense1_train_vectors:
-            for key in vec:
-                if key in v_profile1:
-                    v_profile1[key] += vec[key]
-                    num_occurences1[key] += 1
+            for term in vec:
+                if term in V_sum1:
+                    V_sum1[term] += vec[term]
                 else:
-                    v_profile1[key] = vec[key]
-                    num_occurences1[key] = 1
+                    V_sum1[term] = vec[term]
         
 
-        v_profile2 = {}
-        num_occurences2 = {}
+        V_sum2 = {}
         for vec in sense2_train_vectors:
-            for key in vec:
-                if key in v_profile2:
-                    v_profile2[key] += vec[key]
-                    num_occurences2[key] += 1
+            for term in vec:
+                if term in V_sum2:
+                    V_sum2[term] += vec[term]
                 else:
-                    v_profile2[key] = vec[key]
-                    num_occurences2[key] = 1
-    
+                    V_sum2[term] = vec[term]
 
-        # normalize centroid
-        for k in v_profile1:
-            v_profile1[k] /= num_occurences1[k]
-        for k in v_profile2:
-            v_profile2[k] /= num_occurences2[k]
+        logLikelihood = {}
+        EPSILON = 0.2
+        for term in V_sum2:
+            if (term in V_sum1 and V_sum1[term] > 0):
+                logLikelihood[term] = np.log( V_sum1[term] / V_sum2[term] )
+            else:
+                logLikelihood[term] = np.log( EPSILON / V_sum2[term])
+        
+        for term in V_sum1:
+            if term not in V_sum2:
+                logLikelihood[term] = np.log ( V_sum1[term] / EPSILON)
 
-        # label dev data and keep track of percent correct
-        total_correct = 0
-        total_incorrect = 0
         i = 0
+        sumofLL = 0
         for doc in dev_docs:
-            sim1 = sim_funcs[sim](dev_vectors[i], v_profile1) # shift index to start at 0 
-            sim2 = sim_funcs[sim](dev_vectors[i], v_profile2)
-            if sim1 >= sim2: # model determined it is 1
-                if doc.classification_label == 1:
-                    total_correct += 1
-                else:
-                    total_incorrect += 1
-            else: # model determined it is 2
-                if doc.classification_label == 2:
-                    total_correct += 1
-                else:
-                    total_incorrect += 1
+            vec = dev_vectors[i]
+            for term in vec:
+                if term in logLikelihood:
+                    sumofLL += logLikelihood[term] * vec[term]
+
+                if sumofLL > 0: 
+                    predicted_class = 1
+                elif sumofLL < 0:
+                    predicted_class = 2
+                else: # both classes equally likely
+                    predicted_class = 0
+
+            print("Vec #" + str(doc.doc_id + 1) + 
+                  "\tTrue Class: " + str(doc.classification_label) + 
+                  "\tPredicted Class: " + str(predicted_class) + 
+                  "\tSum of LL: " + str(sumofLL))
+
             i += 1
 
-        results[data_set] = (total_correct / (total_correct + total_incorrect))
 
     print(results)
     return
